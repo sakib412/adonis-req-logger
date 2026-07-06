@@ -1,0 +1,11 @@
+{
+  "name": "adonis-req-logger",
+  "version": "0.0.1",
+  "private": false,
+  "type": "module",
+  "description": "",
+  "license": "MIT",
+  "engines": {
+    "node": ">=24.0.0"
+  }
+}

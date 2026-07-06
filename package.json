@@ -1,0 +1,26 @@
+{
+  "name": "adonis-req-logger",
+  "version": "0.0.1",
+  "private": true,
+  "type": "module",
+  "description": "",
+  "license": "MIT",
+  "engines": {
+    "node": ">=24.0.0"
+  },
+  "scripts": {
+    "dev": "turbo dev",
+    "build": "turbo build",
+    "test": "turbo test",
+    "lint": "turbo lint",
+    "format": "turbo format",
+    "typecheck": "turbo typecheck"
+  },
+  "devDependencies": {
+    "@adonisjs/prettier-config": "^1.5.0",
+    "prettier": "^3.9.4",
+    "turbo": "^2.10.3"
+  },
+  "packageManager": "npm@11.13.0",
+  "prettier": "@adonisjs/prettier-config"
+}
