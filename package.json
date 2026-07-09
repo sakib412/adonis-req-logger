@@ -1,5 +1,5 @@
 {
-  "name": "adonis-req-logger",
+  "name": "adonis-req-logger-monorepo",
   "version": "0.0.1",
   "private": true,
   "type": "module",
@@ -21,6 +21,6 @@
     "prettier": "^3.9.4",
     "turbo": "^2.10.3"
   },
-  "packageManager": "npm@11.13.0",
+  "packageManager": "pnpm@11.10.0",
   "prettier": "@adonisjs/prettier-config"
 }

@@ -1,0 +1,15 @@
+{
+  "extends": "@adonisjs/tsconfig/tsconfig.package.json",
+  "compilerOptions": {
+    "rootDir": "./",
+    "outDir": "./build"
+  },
+  "include": [
+    "index.ts",
+    "configure.ts",
+    "pretty.ts",
+    "providers/**/*.ts",
+    "src/**/*.ts",
+    "stubs/main.ts"
+  ]
+}
