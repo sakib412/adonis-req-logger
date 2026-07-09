@@ -178,9 +178,26 @@ export default defineConfig({ logger: 'http' })
 > Tip: enable `generateRequestId: true` in `config/app.ts` (http settings) so
 > every record carries a `request.id` you can correlate with error reports.
 
+## Version support
+
+The package's **major version tracks the AdonisJS major it supports**:
+
+| Package version | AdonisJS | Branch | npm tag   | Status  |
+| --------------- | -------- | ------ | --------- | ------- |
+| `7.x`           | v7       | `main` | `latest`  | Active  |
+| `5.x`           | v5       | `v5.x` | `adonis5` | Planned |
+
+```sh
+npm i adonis-req-logger        # newest, for the current AdonisJS major
+npm i adonis-req-logger@^5    # legacy line for AdonisJS v5 apps
+```
+
+When a future AdonisJS major introduces breaking changes, it gets a new
+package major; previous lines keep receiving fixes on their branches.
+
 ## Design
 
-See [docs/ARCHITECTURE.md](../../docs/ARCHITECTURE.md) for the full design:
+See [docs/ARCHITECTURE.md](https://github.com/sakib412/adonis-req-logger/blob/main/docs/ARCHITECTURE.md) for the full design:
 why it hooks `http:request_completed` instead of measuring in middleware, how
 query attribution works without the framework's ALS flag, and what is
 deliberately excluded from v1.

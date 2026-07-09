@@ -162,12 +162,34 @@ transform/message hooks, header/body capture, custom sinks, sampling functions,
 an `err` field on the record (needs a clean hook into the exception handler —
 for now the request id correlates with the exception handler's own report).
 
+## Versioning & support policy
+
+The package **major tracks the AdonisJS major it supports**; minors/patches
+within a line are normal semver for the package's own changes.
+
+- `main` targets the newest supported AdonisJS major and publishes as npm
+  `latest` (currently `7.x` ↔ AdonisJS v7).
+- Older AdonisJS majors live on `vN.x` branches and publish under a matching
+  dist-tag (planned: `5.x` on branch `v5.x`, tag `adonis5`, for AdonisJS v5).
+  Fixes land on `main` first and are back-ported when applicable.
+- A future AdonisJS breaking release (v8, …) gets a new package major from a
+  new branch cut; previous lines stay in maintenance.
+- `peerDependencies` enforce the pairing at install time
+  (`@adonisjs/core ^7` for the 7.x line).
+
+The AdonisJS v5 line is a port, not a re-release: v5 is CommonJS, has no
+`http:request_completed` event (timing must be middleware-based), uses
+`instructions.md` templates instead of configure codemods, and pairs with
+Lucid v18 — so it is maintained as its own implementation on its branch.
+
 ## Roadmap
 
-1. **v0.1** — skeleton, configure flow, middleware + completed-listener,
-   record builder, skip/sample/levels. Publishable. ✅ shipped
-2. **v0.2** — DB collector + boot-time debug-flag warning. The differentiator.
-   ✅ shipped (together with v0.1 as `0.2.0`)
-3. **v1.0** — auth user-id enrichment (guarded), autocannon benchmark published
-   in README, docs polish, CI (lint/typecheck/test matrix, publint, provenance),
-   test suite, LICENSE file, repository metadata in package.json.
+1. **Skeleton** — configure flow, middleware + completed-listener, record
+   builder, skip/sample/levels. ✅ shipped
+2. **DB collector** — per-request query stats + boot-time debug-flag warning.
+   The differentiator. ✅ shipped (first release: `7.0.0`)
+3. **Next (7.x)** — test suite, CI (lint/typecheck/test matrix, publint,
+   provenance), auth user-id enrichment (guarded), autocannon benchmark
+   published in README, docs polish.
+4. **5.x line** — AdonisJS v5 legacy port on branch `v5.x` (see Versioning &
+   support policy above).

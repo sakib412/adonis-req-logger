@@ -1,10 +1,18 @@
 {
   "name": "adonis-req-logger",
-  "version": "0.2.0",
+  "version": "7.0.0",
   "private": false,
   "type": "module",
   "description": "Request logging for AdonisJS — one structured, canonical log line per HTTP request, with per-request Lucid query stats",
   "license": "MIT",
+  "author": "Najmus Sakib <nazmusakib412@gmail.com>",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/sakib412/adonis-req-logger.git",
+    "directory": "packages/adonis-req-logger"
+  },
+  "homepage": "https://github.com/sakib412/adonis-req-logger/tree/main/packages/adonis-req-logger#readme",
+  "bugs": "https://github.com/sakib412/adonis-req-logger/issues",
   "keywords": [
     "adonisjs",
     "adonis",
@@ -32,6 +40,7 @@
     "clean": "node -e \"fs.rmSync('build', { recursive: true, force: true })\"",
     "copy:stubs": "node -e \"fs.cpSync('stubs', 'build/stubs', { recursive: true, filter: (src) => !src.endsWith('.ts') })\"",
     "build": "npm run clean && tsc && npm run copy:stubs",
+    "prepublishOnly": "npm run build",
     "typecheck": "tsc --noEmit",
     "format": "prettier --write ."
   },
