@@ -37,6 +37,25 @@ const loggerConfig = defineConfig({
         targets: [targets.file({ destination: 1 })],
       },
     },
+
+    /**
+     * Request logs written by adonis-req-logger. In dev only the summary
+     * line is printed ("GET /users/1 200 12ms") to keep the terminal
+     * readable. In production the full structured record is emitted as
+     * NDJSON. No "destination" here on purpose — setting it would make
+     * pino ignore the transport targets below.
+     */
+    http: {
+      enabled: true,
+      name: env.get('APP_NAME'),
+      level: 'info',
+      transport: {
+        targets: targets()
+          .pushIf(!app.inProduction, { target: 'adonis-req-logger/pretty', options: {} })
+          .pushIf(app.inProduction, targets.file({ destination: 1 }))
+          .toArray(),
+      },
+    },
   },
 })
 

@@ -1,0 +1,51 @@
+import env from '#start/env'
+import { defineConfig } from 'adonis-req-logger'
+
+const reqLoggerConfig = defineConfig({
+  /**
+   * Turn request logging on/off without a deploy.
+   */
+  enabled: env.get('REQ_LOGGER_ENABLED', true),
+
+  /**
+   * Named logger (from "config/logger.ts") to write request logs
+   * through. Remove to use the default logger.
+   */
+  logger: 'http',
+
+  /**
+   * Base level for requests that trigger no escalation. Errors, slow
+   * requests, and slow queries always log above this floor.
+   */
+  level: 'info',
+
+  /**
+   * Paths that never get logged. Strings match the exact path or a
+   * path prefix, regular expressions are tested against the path.
+   */
+  skip: ['/health', '/up'],
+
+  /**
+   * Fraction (0 to 1) of successful requests to log. Errors and slow
+   * requests are always logged.
+   */
+  sample: 1,
+
+  /**
+   * Requests slower than this many milliseconds are logged at "warn".
+   */
+  slowRequestThreshold: 1000,
+
+  /**
+   * Per-request database query stats. Requires a Lucid connection with
+   * "debug: true" in "config/database.ts".
+   */
+  db: {
+    enabled: true,
+    slowQueryThreshold: 100,
+    slowQueryLevel: 'warn',
+    maxQueries: 50,
+  },
+})
+
+export default reqLoggerConfig

@@ -19,6 +19,12 @@ const dbConfig = defineConfig({
       },
 
       /**
+       * Emit "db:query" events, required for adonis-req-logger's
+       * per-request query stats.
+       */
+      debug: true,
+
+      /**
        * Required by Knex for SQLite defaults.
        */
       useNullAsDefault: true,
