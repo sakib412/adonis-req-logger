@@ -1,10 +1,11 @@
+import Env from '@ioc:Adonis/Core/Env'
 import { ReqLoggerConfig } from '@ioc:Adonis/Addons/ReqLogger'
 
 const reqLoggerConfig: ReqLoggerConfig = {
   /**
-   * Turn request logging on/off.
+   * Turn request logging on/off without a deploy.
    */
-  enabled: true,
+  enabled: Env.get('REQ_LOGGER_ENABLED', true),
 
   /**
    * Base level for requests that trigger no escalation. Errors, slow
@@ -28,6 +29,14 @@ const reqLoggerConfig: ReqLoggerConfig = {
    * Requests slower than this many milliseconds are logged at "warn".
    */
   slowRequestThreshold: 1000,
+
+  /**
+   * Extra properties on every request record, applied as child-logger
+   * bindings. "log_type" becomes a Grafana Loki label via propsToLabels
+   * in config/app.ts, so request lines filter separately from
+   * application logs.
+   */
+  bindings: { log_type: 'http' },
 
   /**
    * Per-request database query stats. Requires a Lucid connection with

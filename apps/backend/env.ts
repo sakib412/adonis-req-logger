@@ -21,4 +21,26 @@ export default Env.rules({
   APP_NAME: Env.schema.string(),
   DRIVE_DISK: Env.schema.enum(['local'] as const),
   NODE_ENV: Env.schema.enum(['development', 'production', 'test'] as const),
+  LOG_LEVEL: Env.schema.enum.optional([
+    'trace',
+    'debug',
+    'info',
+    'warn',
+    'error',
+    'fatal',
+  ] as const),
+  REQ_LOGGER_ENABLED: Env.schema.boolean.optional(),
+
+  /*
+  |----------------------------------------------------------------------
+  | Grafana Loki (optional)
+  |----------------------------------------------------------------------
+  |
+  | Shipping logs to Loki turns on only when LOKI_HOST is set — leave it
+  | unset in local development. `tld: false` allows localhost hosts.
+  |
+  */
+  LOKI_HOST: Env.schema.string.optional({ format: 'url', tld: false }),
+  LOKI_USER: Env.schema.string.optional(),
+  LOKI_PASSWORD: Env.schema.string.optional(),
 })

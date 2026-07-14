@@ -6,6 +6,8 @@
  */
 
 import proxyAddr from 'proxy-addr'
+import pinoms from 'pino-multi-stream'
+import { pinoLoki } from 'pino-loki'
 import Env from '@ioc:Adonis/Core/Env'
 import type { ServerConfig } from '@ioc:Adonis/Core/Server'
 import type { LoggerConfig } from '@ioc:Adonis/Core/Logger'
@@ -133,7 +135,67 @@ export const http: ServerConfig = {
 |--------------------------------------------------------------------------
 | Logger
 |--------------------------------------------------------------------------
+|
+| pino 6 (AdonisJS v5) has no transport targets, so log destinations are
+| composed as a multistream and handed to the logger through the `stream`
+| config option. `prettyPrint` must stay unset here: pretty printing runs
+| as its own stream inside the multistream, otherwise every destination
+| (including Loki) would receive colorized text instead of NDJSON.
+|
+| Shipping to Grafana Loki is config-driven: it turns on only when
+| LOKI_HOST is set, so local dev (var unset) is untouched while
+| staging/production opt in. Labels MUST stay low-cardinality (Loki
+| indexes them) — per-request/user ids belong in the log body, never in
+| labels. `log_type` is promoted from log properties to a Loki label via
+| `propsToLabels`; `config/req_logger.ts` sets `bindings.log_type` to
+| "http" so request lines filter separately from application logs.
+|
 */
+const logLevel = Env.get('LOG_LEVEL', 'info')
+
+// pino-loki appends the push path (/loki/api/v1/push) to `host` itself, so
+// LOKI_HOST must be the BASE url only (e.g. https://<stack>.grafana.net).
+const lokiHost = Env.get('LOKI_HOST')
+const lokiUser = Env.get('LOKI_USER')
+const lokiPassword = Env.get('LOKI_PASSWORD')
+
+/**
+ * Streams without an explicit `level` default to "info" inside
+ * pino-multi-stream, so every entry pins it to LOG_LEVEL.
+ */
+const loggerStreams: pinoms.Streams = [
+  Env.get('NODE_ENV') === 'development'
+    ? {
+        level: logLevel,
+        stream: pinoms.prettyStream({
+          prettyPrint: {
+            colorize: true,
+            translateTime: 'dd/mm/yyyy HH:MM:ss.l',
+            singleLine: true,
+          },
+        }),
+      }
+    : { level: logLevel, stream: process.stdout },
+]
+
+if (lokiHost) {
+  loggerStreams.push({
+    level: logLevel,
+    stream: pinoLoki({
+      host: lokiHost,
+      labels: {
+        app: Env.get('APP_NAME'),
+        env: Env.get('NODE_ENV'),
+      },
+      propsToLabels: ['log_type'],
+      batching: { interval: 5 }, // 5s batches — pushes never block the event loop
+      ...(lokiUser && lokiPassword
+        ? { basicAuth: { username: lokiUser, password: lokiPassword } }
+        : {}),
+    }),
+  })
+}
+
 export const logger: LoggerConfig = {
   /*
   |--------------------------------------------------------------------------
@@ -169,18 +231,18 @@ export const logger: LoggerConfig = {
   | at deployment level and not code level.
   |
   */
-  level: Env.get('LOG_LEVEL', 'info'),
+  level: logLevel,
 
   /*
   |--------------------------------------------------------------------------
-  | Pretty print
+  | Destination streams
   |--------------------------------------------------------------------------
   |
-  | It is highly advised NOT to use `prettyPrint` in production, since it
-  | can have huge impact on performance.
+  | Composed above: pretty stdout in development, raw NDJSON stdout
+  | otherwise, plus Grafana Loki whenever LOKI_HOST is set.
   |
   */
-  prettyPrint: Env.get('NODE_ENV') === 'development',
+  stream: pinoms.multistream(loggerStreams),
 }
 
 /*
