@@ -1,75 +1,96 @@
-import { defineConfig, drivers } from '@adonisjs/core/hash'
-
 /**
- * Hashing configuration.
+ * Config source: https://git.io/JfefW
  *
- * This starter uses Node.js scrypt under the hood.
- * Node.js reference: https://nodejs.org/api/crypto.html#cryptoscryptpassword-salt-keylen-options-callback
+ * Feel free to let us know via PR, if you find something broken in this config
+ * file.
  */
-const hashConfig = defineConfig({
-  /**
-   * Default hasher used by the application.
-   */
-  default: 'scrypt',
+
+import Env from '@ioc:Adonis/Core/Env'
+import { hashConfig } from '@adonisjs/core/build/config'
+
+/*
+|--------------------------------------------------------------------------
+| Hash Config
+|--------------------------------------------------------------------------
+|
+| The `HashConfig` relies on the `HashList` interface which is
+| defined inside `contracts` directory.
+|
+*/
+export default hashConfig({
+  /*
+  |--------------------------------------------------------------------------
+  | Default hasher
+  |--------------------------------------------------------------------------
+  |
+  | By default we make use of the argon hasher to hash values. However, feel
+  | free to change the default value
+  |
+  */
+  default: Env.get('HASH_DRIVER', 'scrypt'),
 
   list: {
-    /**
-     * Scrypt is memory-hard, which makes brute-force attacks more expensive.
-     */
-    scrypt: drivers.scrypt({
-      /**
-       * Work factor (Node alias: N / cost).
-       * Higher values increase security and CPU+memory usage.
-       *
-       * Tuning guideline:
-       * - Start with 16384.
-       * - Increase gradually (for example 32768) and benchmark login/signup latency.
-       * - Keep values practical for your slowest production machine.
-       *
-       * Node constraint: value must be a power of two greater than 1.
-       */
+    /*
+    |--------------------------------------------------------------------------
+    | scrypt
+    |--------------------------------------------------------------------------
+    |
+    | Scrypt mapping uses the Node.js inbuilt crypto module for creating
+    | hashes.
+    |
+    | We are using the default configuration recommended within the Node.js
+    | documentation.
+    | https://nodejs.org/api/crypto.html#cryptoscryptpassword-salt-keylen-options-callback
+    |
+    */
+    scrypt: {
+      driver: 'scrypt',
       cost: 16384,
-
-      /**
-       * Block size (Node alias: r / blockSize).
-       * Increases memory and CPU linearly.
-       *
-       * Tuning guideline:
-       * - Keep 8 unless you have a measured reason to change it.
-       * - Raise only with benchmark data, because memory usage grows quickly.
-       */
       blockSize: 8,
-
-      /**
-       * Parallelization (Node alias: p / parallelization).
-       * Controls how many independent computations are performed.
-       *
-       * Tuning guideline:
-       * - Keep 1 for most applications.
-       * - Increase only after load testing if your infrastructure benefits from it.
-       */
       parallelization: 1,
+      saltSize: 16,
+      keyLength: 64,
+      maxMemory: 32 * 1024 * 1024,
+    },
 
-      /**
-       * Maximum memory limit in bytes (Node alias: maxmem / maxMemory).
-       * Hashing throws if the estimated memory usage is above this limit.
-       * Node documents the check as approximately: 128 * N * r > maxmem.
-       *
-       * Tuning guideline:
-       * - Keep this aligned with your cost/blockSize choices.
-       * - Increase carefully on memory-constrained environments.
-       */
-      maxMemory: 33554432,
-    }),
+    /*
+    |--------------------------------------------------------------------------
+    | Argon
+    |--------------------------------------------------------------------------
+    |
+    | Argon mapping uses the `argon2` driver to hash values.
+    |
+    | Make sure you install the underlying dependency for this driver to work.
+    | https://www.npmjs.com/package/phc-argon2.
+    |
+    | npm install phc-argon2
+    |
+    */
+    argon: {
+      driver: 'argon2',
+      variant: 'id',
+      iterations: 3,
+      memory: 4096,
+      parallelism: 1,
+      saltSize: 16,
+    },
+
+    /*
+    |--------------------------------------------------------------------------
+    | Bcrypt
+    |--------------------------------------------------------------------------
+    |
+    | Bcrypt mapping uses the `bcrypt` driver to hash values.
+    |
+    | Make sure you install the underlying dependency for this driver to work.
+    | https://www.npmjs.com/package/phc-bcrypt.
+    |
+    | npm install phc-bcrypt
+    |
+    */
+    bcrypt: {
+      driver: 'bcrypt',
+      rounds: 10,
+    },
   },
 })
-
-export default hashConfig
-
-/**
- * Inferring types for the list of hashers you have configured
- * in your application.
- */
-declare module '@adonisjs/core/types' {
-  export interface HashersList extends InferHashers<typeof hashConfig> {}
-}

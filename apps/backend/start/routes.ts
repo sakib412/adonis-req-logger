@@ -1,77 +1,39 @@
 /*
 |--------------------------------------------------------------------------
-| Routes file
+| Routes
 |--------------------------------------------------------------------------
 |
-| The routes file is used for defining the HTTP routes.
+| Demo routes exercising every adonis-req-logger behavior: a plain
+| request, a request running Lucid queries, a slow request, an errored
+| request, and a skipped health check.
 |
 */
 
-import { middleware } from '#start/kernel'
-import router from '@adonisjs/core/services/router'
-import { controllers } from '#generated/controllers'
-import User from '#models/user'
-import db from '@adonisjs/lucid/services/db'
+import Route from '@ioc:Adonis/Core/Route'
+import Database from '@ioc:Adonis/Lucid/Database'
 
-router.get('/', () => {
+Route.get('/', async () => {
   return { hello: 'world' }
 })
 
-/**
- * Demo routes for exercising adonis-req-logger's per-request
- * query stats with different query patterns.
- */
-router
-  .group(() => {
-    /**
-     * Single query.
-     */
-    router.get('users', async () => {
-      const users = await User.all()
-      return { users: users.length }
-    })
-
-    /**
-     * Classic N+1: one query for the list, one more per row.
-     */
-    router.get('n-plus-one', async () => {
-      const users = await User.all()
-      for (const user of users) {
-        await db.from('auth_access_tokens').where('tokenable_id', user.id)
-      }
-      return { users: users.length }
-    })
-
-    /**
-     * A single deliberately slow query, to trip "slowQueryThreshold"
-     * and get itemized in the log record.
-     */
-    router.get('slow-query', async () => {
-      await db.rawQuery(
-        'WITH RECURSIVE counter(n) AS (SELECT 1 UNION ALL SELECT n + 1 FROM counter WHERE n < 3000000) SELECT COUNT(*) AS total FROM counter'
-      )
-      return { done: true }
-    })
+Route.get('/users/:id', async ({ params }) => {
+  const [user] = await Database.rawQuery('select :id as id, :name as name', {
+    id: Number(params.id),
+    name: 'demo-user',
   })
-  .prefix('/demo')
+  const [stats] = await Database.rawQuery('select 1 as visits')
+  return { user, stats }
+})
 
-router
-  .group(() => {
-    router
-      .group(() => {
-        router.post('signup', [controllers.NewAccount, 'store'])
-        router.post('login', [controllers.AccessTokens, 'store'])
-      })
-      .prefix('auth')
-      .as('auth')
+Route.get('/slow', async () => {
+  await new Promise((resolve) => setTimeout(resolve, 1200))
+  return { slow: true }
+})
 
-    router
-      .group(() => {
-        router.get('profile', [controllers.Profile, 'show'])
-        router.post('logout', [controllers.AccessTokens, 'destroy'])
-      })
-      .prefix('account')
-      .as('profile')
-      .use(middleware.auth())
-  })
-  .prefix('/api/v1')
+Route.get('/error', async () => {
+  throw new Error('Boom')
+})
+
+Route.get('/health', async () => {
+  return { ok: true }
+})

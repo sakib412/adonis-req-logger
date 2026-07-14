@@ -4,6 +4,7 @@ packages:
 allowBuilds:
   '@swc/core': true
   better-sqlite3: true
+  sqlite3: true
 minimumReleaseAgeExclude:
   - '@typescript/typescript-aix-ppc64@7.0.2'
   - '@typescript/typescript-darwin-arm64@7.0.2'
