@@ -21,10 +21,16 @@ node ace add adonis-req-logger
 
 ## Version support
 
-Package majors track AdonisJS majors: `7.x` supports AdonisJS v7 (`main`,
-npm `latest`); a `5.x` line for AdonisJS v5 is planned on branch `v5.x`
-(npm tag `adonis5`). Details in the
-[versioning policy](docs/ARCHITECTURE.md#versioning--support-policy).
+Package majors track AdonisJS majors. Pick the line that matches your app:
+
+| Your AdonisJS | Install | Docs | Branch / npm tag |
+| ------------- | ------- | ---- | ---------------- |
+| **v7** | `node ace add adonis-req-logger` | [7.x README](packages/adonis-req-logger/README.md) | [`main`](https://github.com/sakib412/adonis-req-logger/tree/main) / `latest` |
+| **v5** | `npm i adonis-req-logger@adonis5` | [5.x README](https://github.com/sakib412/adonis-req-logger/blob/v5.x/packages/adonis-req-logger/README.md) | [`v5.x`](https://github.com/sakib412/adonis-req-logger/tree/v5.x) / `adonis5` |
+
+Details in the
+[versioning policy](docs/ARCHITECTURE.md#versioning--support-policy);
+release procedure in [RELEASING.md](docs/RELEASING.md).
 
 ## Repo layout
 
