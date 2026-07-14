@@ -164,6 +164,8 @@ for now the request id correlates with the exception handler's own report).
 
 ## Versioning & support policy
 
+> Release procedure: see [RELEASING.md](./RELEASING.md).
+
 The package **major tracks the AdonisJS major it supports**; minors/patches
 within a line are normal semver for the package's own changes.
 
