@@ -1,20 +1,10 @@
-{{{
-  exports({ to: app.configPath('req_logger.ts') })
-}}}
-import env from '#start/env'
-import { defineConfig } from 'adonis-req-logger'
+import { ReqLoggerConfig } from '@ioc:Adonis/Addons/ReqLogger'
 
-const reqLoggerConfig = defineConfig({
+const reqLoggerConfig: ReqLoggerConfig = {
   /**
-   * Turn request logging on/off without a deploy.
+   * Turn request logging on/off.
    */
-  enabled: env.get('REQ_LOGGER_ENABLED', true),
-
-  /**
-   * Named logger (from "config/logger.ts") to write request logs
-   * through. Remove to use the default logger.
-   */
-  // logger: 'http',
+  enabled: true,
 
   /**
    * Base level for requests that trigger no escalation. Errors, slow
@@ -26,7 +16,7 @@ const reqLoggerConfig = defineConfig({
    * Paths that never get logged. Strings match the exact path or a
    * path prefix, regular expressions are tested against the path.
    */
-  skip: ['/health', '/up'],
+  skip: ['/health'],
 
   /**
    * Fraction (0 to 1) of successful requests to log. Errors and slow
@@ -49,6 +39,6 @@ const reqLoggerConfig = defineConfig({
     slowQueryLevel: 'warn',
     maxQueries: 50,
   },
-})
+}
 
 export default reqLoggerConfig

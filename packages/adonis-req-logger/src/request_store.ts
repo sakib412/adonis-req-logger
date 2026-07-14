@@ -1,8 +1,8 @@
-import { AsyncLocalStorage } from 'node:async_hooks'
+import { AsyncLocalStorage } from 'async_hooks'
 
-import type { HttpContext } from '@adonisjs/core/http'
+import type { HttpContextContract } from '@ioc:Adonis/Core/HttpContext'
 
-import type { RequestStore } from './types.js'
+import type { RequestStore } from './types'
 
 /**
  * Carries the request store across the async execution of a request so
@@ -13,11 +13,12 @@ import type { RequestStore } from './types.js'
 export const requestStorage = new AsyncLocalStorage<RequestStore>()
 
 /**
- * Bridges the store to the `http:request_completed` listener, which runs
- * on the response "finish" event and is not guaranteed to share the
- * middleware's async context
+ * Bridges the store to the on-finished completion callback, which is not
+ * guaranteed to share the request's async context. Also the reliable
+ * lookup for queries running in the exception handler, which executes
+ * outside a middleware-established ALS scope in v5
  */
-export const storeByContext = new WeakMap<HttpContext, RequestStore>()
+export const storeByContext = new WeakMap<HttpContextContract, RequestStore>()
 
 export function createRequestStore(): RequestStore {
   return {

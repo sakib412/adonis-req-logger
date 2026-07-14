@@ -1,15 +1,19 @@
 {
-  "extends": "@adonisjs/tsconfig/tsconfig.package.json",
   "compilerOptions": {
+    "target": "ES2019",
+    "lib": ["ES2019"],
+    "module": "commonjs",
+    "moduleResolution": "node",
     "rootDir": "./",
-    "outDir": "./build"
+    "outDir": "./build",
+    "declaration": true,
+    "strict": true,
+    "esModuleInterop": true,
+    "forceConsistentCasingInFileNames": true,
+    "skipLibCheck": true,
+    "experimentalDecorators": true,
+    "types": ["node", "on-finished", "@adonisjs/core", "@adonisjs/lucid"]
   },
-  "include": [
-    "index.ts",
-    "configure.ts",
-    "pretty.ts",
-    "providers/**/*.ts",
-    "src/**/*.ts",
-    "stubs/main.ts"
-  ]
+  "include": ["adonis-typings/**/*.ts", "providers/**/*.ts", "src/**/*.ts"],
+  "exclude": ["node_modules", "build"]
 }

@@ -2,6 +2,8 @@
 
 > Request logging for AdonisJS — one structured, canonical log line per HTTP request, with per-request Lucid query stats.
 
+> **⚠️ This is the in-progress `v5.x` branch** (AdonisJS v5 line, package 5.x, npm tag `adonis5`). The port is being built ticket by ticket on the [AdonisJS v5 support line map](https://github.com/sakib412/adonis-req-logger/issues/1); the README below still documents the 7.x usage and will be rewritten for v5 before release ([#8](https://github.com/sakib412/adonis-req-logger/issues/8)). For the released 7.x line (AdonisJS v7), see the [`main` branch](https://github.com/sakib412/adonis-req-logger/tree/main/packages/adonis-req-logger#readme).
+
 Emits through your application's existing logger (`config/logger.ts`), so every
 pino transport you already use — `pino-pretty`, `pino-loki`, files, Datadog —
 works unchanged. No custom transport layer, no storage, near-zero overhead.
