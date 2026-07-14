@@ -1,12 +1,20 @@
 # adonis-req-logger
 
-> Request logging for AdonisJS — one structured, canonical log line per HTTP request, with per-request Lucid query stats.
+> Request logging for AdonisJS v5 — one structured, canonical log line per HTTP request, with per-request Lucid query stats.
 
-> **⚠️ This is the in-progress `v5.x` branch** (AdonisJS v5 line, package 5.x, npm tag `adonis5`). The port is being built ticket by ticket on the [AdonisJS v5 support line map](https://github.com/sakib412/adonis-req-logger/issues/1); the README below still documents the 7.x usage and will be rewritten for v5 before release ([#8](https://github.com/sakib412/adonis-req-logger/issues/8)). For the released 7.x line (AdonisJS v7), see the [`main` branch](https://github.com/sakib412/adonis-req-logger/tree/main/packages/adonis-req-logger#readme).
+This is the **5.x line** for **AdonisJS v5** (CommonJS), published under the npm
+`adonis5` dist-tag from the [`v5.x` branch](https://github.com/sakib412/adonis-req-logger/tree/v5.x).
+For AdonisJS v7, use the [7.x line](https://github.com/sakib412/adonis-req-logger/tree/main/packages/adonis-req-logger#readme)
+(npm `latest`).
 
-Emits through your application's existing logger (`config/logger.ts`), so every
-pino transport you already use — `pino-pretty`, `pino-loki`, files, Datadog —
-works unchanged. No custom transport layer, no storage, near-zero overhead.
+| Package line | AdonisJS | npm tag | Branch | Status |
+| ------------ | -------- | ------- | ------ | ------ |
+| 7.x          | v7       | `latest` | [`main`](https://github.com/sakib412/adonis-req-logger/tree/main) | Active |
+| 5.x          | v5       | `adonis5` | [`v5.x`](https://github.com/sakib412/adonis-req-logger/tree/v5.x) | Active |
+
+Emits through your application's logger, so whatever log shipping you already
+have works unchanged. No custom transport layer, no storage, near-zero
+overhead.
 
 ```
 GET /users/1 200 12ms
@@ -17,10 +25,10 @@ GET /users/1 200 12ms
   "level": "info",
   "msg": "GET /users/1 200 12ms",
   "request": {
-    "id": "…",
+    "id": "…",                 // honors incoming x-request-id
     "method": "GET",
     "url": "/users/1?full=true",
-    "route": "/users/:id",
+    "route": "/users/:id",     // matched pattern — the aggregation key
     "ip": "203.0.113.7",
     "user_agent": "…"
   },
@@ -30,179 +38,131 @@ GET /users/1 200 12ms
 }
 ```
 
+`request.route` (the pattern, not the URL) is what makes these lines
+aggregatable per endpoint — the Adonis-specific advantage over generic
+`pino-http`.
+
 ## Installation
 
 ```sh
-node ace add adonis-req-logger
-```
-
-Or install and configure separately:
-
-```sh
-npm i adonis-req-logger
+npm i adonis-req-logger@adonis5
 node ace configure adonis-req-logger
 ```
 
-The configure step publishes `config/req_logger.ts`, registers the provider and
-the server middleware, and defines the `REQ_LOGGER_ENABLED` env variable.
+The configure step publishes `config/req_logger.ts`, registers the provider,
+and adds the package's typings to `tsconfig.json`. It then prints three
+manual steps (v5 has no codemods for these):
+
+1. **Register the middleware** — needed only for per-request db stats — in
+   `start/kernel.ts`:
+
+   ```ts
+   Server.middleware.register([
+     () => import('@ioc:Adonis/Core/BodyParser'),
+     () => import('@ioc:Adonis/Addons/ReqLoggerMiddleware'),
+   ])
+   ```
+
+2. **Enable query reporting** in `config/database.ts` — Lucid only emits
+   `db:query` when the connection is in debug mode:
+
+   ```ts
+   connections: {
+     pg: {
+       // ...
+       debug: true,
+     },
+   },
+   ```
+
+3. **Enable request ids** in `config/app.ts` (incoming `x-request-id` headers
+   are honored either way):
+
+   ```ts
+   export const http: ServerConfig = {
+     // ...
+     generateRequestId: true,
+   }
+   ```
 
 ## Configuration
 
 ```ts
 // config/req_logger.ts
-import env from '#start/env'
-import { defineConfig } from 'adonis-req-logger'
+import { ReqLoggerConfig } from '@ioc:Adonis/Addons/ReqLogger'
 
-export default defineConfig({
-  enabled: env.get('REQ_LOGGER_ENABLED', true),
-
-  /** Named logger (from config/logger.ts) to emit through. Default: app default logger */
-  // logger: 'http',
+const reqLoggerConfig: ReqLoggerConfig = {
+  /** Turn request logging on/off */
+  enabled: true,
 
   /** Base level for uneventful requests. Escalations only ever raise it */
   level: 'info',
 
-  /** Paths to never log (string prefix or RegExp) */
-  skip: ['/health', '/up'],
+  /** Paths never logged: exact match or segment-boundary prefix; RegExp tested against the path */
+  skip: ['/health'],
 
-  /** Fraction (0..1) of successful requests to log. Errors/slow requests always log */
+  /** Fraction (0-1) of uneventful requests to log. Errors/slow always log */
   sample: 1,
 
-  /** Requests slower than this log at "warn". Number (ms) or "1 second" */
+  /** Requests slower than this many milliseconds log at "warn" */
   slowRequestThreshold: 1000,
 
   /** Per-request Lucid query stats */
   db: {
     enabled: true,
-    /** Queries slower than this are itemized. Number (ms) or "100 ms" */
+    /** Queries slower than this many milliseconds itemize under db.slow */
     slowQueryThreshold: 100,
-    /** Level for requests that ran a slow query. At/below "level" opts out */
+    /** Level when the request ran a slow query (values at/below `level` opt out) */
     slowQueryLevel: 'warn',
-    /** Max ordinary queries captured per request. Counting continues past the
-        cap, and slow queries are always captured */
+    /** Capture cap per request; counting continues, slow queries always captured */
     maxQueries: 50,
   },
-})
-```
-
-### Log levels
-
-| Condition                                       | Level                              |
-| ----------------------------------------------- | ---------------------------------- |
-| Status `5xx`                                    | `error`                            |
-| Status `4xx`                                    | `warn`                             |
-| Slower than `slowRequestThreshold`              | `warn`                             |
-| Ran a query slower than `db.slowQueryThreshold` | `db.slowQueryLevel` (default `warn`) |
-| Everything else                                 | `level` (default `info`)           |
-
-When several conditions apply, the most severe level wins — a 5xx response logs
-at `error` regardless of the other settings. The base `level` is a floor, not a
-cap: escalations only ever raise it. Two useful dials:
-
-- `level: 'debug'` with your logger at `info` keeps routine request lines out
-  of the logs entirely, while errors, slow requests, and slow queries still get
-  through.
-- `slowQueryLevel` at or below `level` opts out of the slow-query escalation —
-  such requests are then ordinary: logged at the base level and eligible for
-  sampling.
-
-### Database query stats
-
-Lucid only emits query events when the connection has `debug: true`:
-
-```ts
-// config/database.ts
-connections: {
-  sqlite: {
-    client: 'better-sqlite3',
-    debug: true, // 👈 required for per-request query stats
-    // ...
-  },
 }
+
+export default reqLoggerConfig
 ```
 
-Query **bindings are never captured** — only the parameterized SQL text of slow
-queries is itemized. Queries fired outside a request (boot, ace commands,
-background jobs) are ignored.
+To toggle logging via an environment variable, add a rule to `env.ts`
+(`REQ_LOGGER_ENABLED: Env.schema.boolean.optional()`) and use
+`enabled: Env.get('REQ_LOGGER_ENABLED', true)`.
 
-### Pretty printing in development
+## Level escalation
 
-The package ships a pino-pretty preset that appends the per-request query
-stats to the summary line:
+The most severe applicable level wins; `level` is the floor:
 
-```
-[13:09:17.033] INFO: GET /demo/users 200 41ms · 1 query 1.9ms
-```
+- 5xx response → `error`
+- 4xx response → `warn`
+- Duration ≥ `slowRequestThreshold` → `warn`
+- Any query ≥ `db.slowQueryThreshold` → `db.slowQueryLevel`
 
-```ts
-// config/logger.ts
-transport: {
-  targets: targets()
-    .pushIf(!app.inProduction, { target: 'adonis-req-logger/pretty' })
-    .toArray(),
-},
-```
+Sampling (`sample < 1`) only ever drops **uneventful** requests — errored and
+slow requests, and requests with slow queries, always log.
 
-It lives in the package — rather than as pino-pretty options in your config —
-because the summary suffix needs a `messageFormat` function, and transport
-options cross a worker-thread boundary, so they cannot hold functions.
-Requires `pino-pretty` (an optional peer; AdonisJS starter kits already ship
-it in development).
+## Notes on the v5 line
 
-### Shipping request logs to Loki (or anywhere)
+The 5.x line is a port of the 7.x design onto AdonisJS v5 APIs. Differences
+that exist because v5 works differently:
 
-Define a dedicated logger in `config/logger.ts` and point the request logger at
-it — routing, batching, and delivery are handled by pino transports:
+- **No `logger` config knob.** v5 has a single application logger
+  (`config/app.ts`), no named-loggers map — records emit through it. Pretty
+  printing in development is v5's own `prettyPrint` flag (pino 6 loads
+  `pino-pretty` in-process; use `pino-pretty@^6`), so the 7.x
+  `adonis-req-logger/pretty` transport preset doesn't exist here.
+- **Thresholds are numbers (milliseconds) only** — duration strings like
+  `'1 second'` are a 7.x-only convenience.
+- Requests are timed from a server **before hook** to the response's actual
+  flush (`on-finished`) — the same semantics as v7's `http:request_completed`
+  event, covering 404s and errored requests. 404s never produce `db` stats
+  (v5 global middleware doesn't run for unmatched routes; no queries run
+  anyway).
+- Queries issued **inside the exception handler** are not attributed to the
+  request's db stats (they escape the middleware's async scope in v5).
 
-```ts
-// config/logger.ts
-loggers: {
-  app: { /* ... */ },
-  http: {
-    enabled: true,
-    level: 'info',
-    transport: {
-      targets: targets()
-        .pushIf(app.inDev, { target: 'adonis-req-logger/pretty' })
-        .pushIf(app.inProduction, {
-          target: 'pino-loki',
-          options: { host: env.get('LOKI_HOST'), labels: { channel: 'http' } },
-        })
-        .toArray(),
-    },
-  },
-},
+## Requirements
 
-// config/req_logger.ts
-export default defineConfig({ logger: 'http' })
-```
-
-> Tip: enable `generateRequestId: true` in `config/app.ts` (http settings) so
-> every record carries a `request.id` you can correlate with error reports.
-
-## Version support
-
-The package's **major version tracks the AdonisJS major it supports**:
-
-| Package version | AdonisJS | Branch | npm tag   | Status  |
-| --------------- | -------- | ------ | --------- | ------- |
-| `7.x`           | v7       | `main` | `latest`  | Active  |
-| `5.x`           | v5       | `v5.x` | `adonis5` | Planned |
-
-```sh
-npm i adonis-req-logger        # newest, for the current AdonisJS major
-npm i adonis-req-logger@^5    # legacy line for AdonisJS v5 apps
-```
-
-When a future AdonisJS major introduces breaking changes, it gets a new
-package major; previous lines keep receiving fixes on their branches.
-
-## Design
-
-See [docs/ARCHITECTURE.md](https://github.com/sakib412/adonis-req-logger/blob/main/docs/ARCHITECTURE.md) for the full design:
-why it hooks `http:request_completed` instead of measuring in middleware, how
-query attribution works without the framework's ALS flag, and what is
-deliberately excluded from v1.
+- `@adonisjs/core` ^5.9.0 (AdonisJS v5)
+- `@adonisjs/lucid` ^18 — optional, only for db stats
+- Node.js >= 14.15.4
 
 ## License
 
