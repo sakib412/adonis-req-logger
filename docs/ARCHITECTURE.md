@@ -192,4 +192,5 @@ Lucid v18 — so it is maintained as its own implementation on its branch.
    provenance), auth user-id enrichment (guarded), autocannon benchmark
    published in README, docs polish.
 4. **5.x line** — AdonisJS v5 legacy port on branch `v5.x` (see Versioning &
-   support policy above).
+   support policy above). ✅ shipped on the branch, publish-ready
+   (effort charted in [issue #1](https://github.com/sakib412/adonis-req-logger/issues/1)).

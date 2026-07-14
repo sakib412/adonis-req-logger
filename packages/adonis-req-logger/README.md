@@ -185,7 +185,7 @@ The package's **major version tracks the AdonisJS major it supports**:
 | Package version | AdonisJS | Branch | npm tag   | Status  |
 | --------------- | -------- | ------ | --------- | ------- |
 | `7.x`           | v7       | `main` | `latest`  | Active  |
-| `5.x`           | v5       | `v5.x` | `adonis5` | Planned |
+| `5.x`           | v5       | [`v5.x`](https://github.com/sakib412/adonis-req-logger/tree/v5.x) | `adonis5` | Active  |
 
 ```sh
 npm i adonis-req-logger        # newest, for the current AdonisJS major
