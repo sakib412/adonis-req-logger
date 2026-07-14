@@ -30,6 +30,14 @@ const reqLoggerConfig: ReqLoggerConfig = {
   slowRequestThreshold: 1000,
 
   /**
+   * Extra properties merged into every request log record (child-logger
+   * bindings). Useful to separate request lines from application logs
+   * in aggregators, e.g. { log_type: 'http' } with pino-loki's
+   * "propsToLabels". Keep values static and low-cardinality.
+   */
+  bindings: {},
+
+  /**
    * Per-request database query stats. Requires a Lucid connection with
    * "debug: true" in "config/database.ts".
    */

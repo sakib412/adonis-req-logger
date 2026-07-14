@@ -19,6 +19,7 @@ export function resolveConfig(config: ReqLoggerConfig): ResolvedReqLoggerConfig 
     skip: config.skip ?? [],
     sample,
     slowRequestThreshold: config.slowRequestThreshold ?? 1000,
+    bindings: config.bindings ?? {},
     db: {
       enabled: config.db?.enabled ?? true,
       slowQueryThreshold: config.db?.slowQueryThreshold ?? 100,

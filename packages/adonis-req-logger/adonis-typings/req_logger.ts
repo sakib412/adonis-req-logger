@@ -53,6 +53,19 @@ declare module '@ioc:Adonis/Addons/ReqLogger' {
     slowRequestThreshold?: number
 
     /**
+     * Extra properties merged into every request log record, applied as
+     * child-logger bindings on the application logger. Lets aggregators
+     * separate request lines from the rest of the application's logs —
+     * for example `{ log_type: 'http' }` becomes a Grafana Loki label
+     * with pino-loki's `propsToLabels: ['log_type']`. Keep values
+     * low-cardinality: static strings, never per-request data
+     *
+     * Defaults to `{}` (request lines log through the application
+     * logger unchanged)
+     */
+    bindings?: Record<string, string | number | boolean>
+
+    /**
      * Per-request database query stats, collected from Lucid's `db:query`
      * event. Requires `@adonisjs/lucid` with `debug: true` on the
      * connection in `config/database.ts`

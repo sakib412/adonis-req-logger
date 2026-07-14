@@ -11,6 +11,7 @@ export type ResolvedReqLoggerConfig = {
   skip: (string | RegExp)[]
   sample: number
   slowRequestThreshold: number
+  bindings: Record<string, string | number | boolean>
   db: {
     enabled: boolean
     slowQueryThreshold: number

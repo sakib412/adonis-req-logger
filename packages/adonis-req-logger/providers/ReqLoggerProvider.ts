@@ -46,6 +46,17 @@ export default class ReqLoggerProvider {
     const Logger = this.app.container.resolveBinding('Adonis/Core/Logger')
 
     /**
+     * Request lines emit through a child logger when `bindings` is
+     * configured, so every record carries the extra properties (for
+     * example `log_type: 'http'`) while the rest of the application's
+     * logs stay untouched — v5's single-logger stand-in for the 7.x
+     * named `logger` knob
+     */
+    const requestLogger = Object.keys(config.bindings).length
+      ? Logger.child(config.bindings)
+      : Logger
+
+    /**
      * A before hook (not a global middleware) is the only v5 vantage
      * point that sees every request — it runs before route matching, so
      * 404s are covered, and the on-finished callback fires once the
@@ -64,9 +75,12 @@ export default class ReqLoggerProvider {
       const start = process.hrtime()
       onFinished(ctx.response.response, () => {
         try {
-          logRequest(ctx, process.hrtime(start), config, Logger)
+          logRequest(ctx, process.hrtime(start), config, requestLogger)
         } catch (error) {
-          Logger.error({ err: error }, 'adonis-req-logger: failed to write the request log line')
+          requestLogger.error(
+            { err: error },
+            'adonis-req-logger: failed to write the request log line'
+          )
         }
       })
     })

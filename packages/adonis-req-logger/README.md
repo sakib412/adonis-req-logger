@@ -107,6 +107,9 @@ const reqLoggerConfig: ReqLoggerConfig = {
   /** Requests slower than this many milliseconds log at "warn" */
   slowRequestThreshold: 1000,
 
+  /** Extra properties on every request record (child-logger bindings), e.g. { log_type: 'http' } */
+  bindings: {},
+
   /** Per-request Lucid query stats */
   db: {
     enabled: true,
@@ -144,9 +147,12 @@ The 5.x line is a port of the 7.x design onto AdonisJS v5 APIs. Differences
 that exist because v5 works differently:
 
 - **No `logger` config knob.** v5 has a single application logger
-  (`config/app.ts`), no named-loggers map — records emit through it. Pretty
-  printing in development is v5's own `prettyPrint` flag (pino 6 loads
-  `pino-pretty` in-process; use `pino-pretty@^6`), so the 7.x
+  (`config/app.ts`), no named-loggers map — records emit through it. The
+  `bindings` option is the stand-in: `bindings: { log_type: 'http' }` tags
+  every request line so aggregators can split them from application logs
+  (e.g. pino-loki's `propsToLabels: ['log_type']` turns it into a Loki
+  label). Pretty printing in development is v5's own `prettyPrint` flag
+  (pino 6 loads `pino-pretty` in-process; use `pino-pretty@^6`), so the 7.x
   `adonis-req-logger/pretty` transport preset doesn't exist here.
 - **Thresholds are numbers (milliseconds) only** — duration strings like
   `'1 second'` are a 7.x-only convenience.
