@@ -13,18 +13,26 @@ This is the development monorepo. The published package lives in
 [README](packages/adonis-req-logger/README.md) has installation and
 configuration docs.
 
-## Quick start (in an AdonisJS v7 app)
+## Quick start (in an AdonisJS v5 app — this branch)
 
 ```sh
-node ace add adonis-req-logger
+npm i adonis-req-logger@adonis5
+node ace configure adonis-req-logger
 ```
 
 ## Version support
 
-Package majors track AdonisJS majors: `7.x` supports AdonisJS v7 (`main`,
-npm `latest`); a `5.x` line for AdonisJS v5 is planned on branch `v5.x`
-(npm tag `adonis5`). Details in the
-[versioning policy](docs/ARCHITECTURE.md#versioning--support-policy).
+This is the **`v5.x` branch** — the 5.x line for AdonisJS v5. Package
+majors track AdonisJS majors; pick the line that matches your app:
+
+| Your AdonisJS | Install | Docs | Branch / npm tag |
+| ------------- | ------- | ---- | ---------------- |
+| **v7** | `node ace add adonis-req-logger` | [7.x README](https://github.com/sakib412/adonis-req-logger/blob/main/packages/adonis-req-logger/README.md) | [`main`](https://github.com/sakib412/adonis-req-logger/tree/main) / `latest` |
+| **v5** | `npm i adonis-req-logger@adonis5` | [5.x README](packages/adonis-req-logger/README.md) | [`v5.x`](https://github.com/sakib412/adonis-req-logger/tree/v5.x) / `adonis5` |
+
+Details in the
+[versioning policy](https://github.com/sakib412/adonis-req-logger/blob/main/docs/ARCHITECTURE.md#versioning--support-policy)
+(canonical on `main`); release procedure in [RELEASING.md](docs/RELEASING.md).
 
 ## Repo layout
 

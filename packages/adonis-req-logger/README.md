@@ -7,10 +7,10 @@ This is the **5.x line** for **AdonisJS v5** (CommonJS), published under the npm
 For AdonisJS v7, use the [7.x line](https://github.com/sakib412/adonis-req-logger/tree/main/packages/adonis-req-logger#readme)
 (npm `latest`).
 
-| Package line | AdonisJS | npm tag | Branch | Status |
-| ------------ | -------- | ------- | ------ | ------ |
-| 7.x          | v7       | `latest` | [`main`](https://github.com/sakib412/adonis-req-logger/tree/main) | Active |
-| 5.x          | v5       | `adonis5` | [`v5.x`](https://github.com/sakib412/adonis-req-logger/tree/v5.x) | Active |
+| Package line | AdonisJS | npm tag | Branch | Docs | Status |
+| ------------ | -------- | ------- | ------ | ---- | ------ |
+| 7.x          | v7       | `latest` | [`main`](https://github.com/sakib412/adonis-req-logger/tree/main) | [7.x README](https://github.com/sakib412/adonis-req-logger/blob/main/packages/adonis-req-logger/README.md) | Active |
+| 5.x          | v5       | `adonis5` | [`v5.x`](https://github.com/sakib412/adonis-req-logger/tree/v5.x) | this README | Active |
 
 Emits through your application's logger, so whatever log shipping you already
 have works unchanged. No custom transport layer, no storage, near-zero
