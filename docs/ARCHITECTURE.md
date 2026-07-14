@@ -170,8 +170,15 @@ within a line are normal semver for the package's own changes.
 - `main` targets the newest supported AdonisJS major and publishes as npm
   `latest` (currently `7.x` ↔ AdonisJS v7).
 - Older AdonisJS majors live on `vN.x` branches and publish under a matching
-  dist-tag (planned: `5.x` on branch `v5.x`, tag `adonis5`, for AdonisJS v5).
+  dist-tag (`5.x` on branch `v5.x`, tag `adonis5`, for AdonisJS v5).
   Fixes land on `main` first and are back-ported when applicable.
+- **Back-port workflow:** changes landing on `main` that qualify — bug and
+  security fixes, plus features portable to the older line's API surface —
+  get the `backport:v5.x` label on their PR/commit. Labelled changes are
+  cherry-picked (`git cherry-pick -x`) to `v5.x` as a batch before each 5.x
+  patch/minor release; the label is the queue. Changes tied to APIs the old
+  line lacks (ESM-only, `http:request_completed`, named loggers, worker-thread
+  transports) are not back-ported.
 - A future AdonisJS breaking release (v8, …) gets a new package major from a
   new branch cut; previous lines stay in maintenance.
 - `peerDependencies` enforce the pairing at install time
