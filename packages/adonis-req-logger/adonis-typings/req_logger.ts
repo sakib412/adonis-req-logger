@@ -93,3 +93,28 @@ declare module '@ioc:Adonis/Addons/ReqLogger' {
     }
   }
 }
+
+declare module '@ioc:Adonis/Addons/ReqLoggerMiddleware' {
+  import { HttpContextContract } from '@ioc:Adonis/Core/HttpContext'
+
+  /**
+   * Global middleware that scopes the package's AsyncLocalStorage around
+   * the request so the `db:query` listener can attribute queries to it.
+   * Register in `start/kernel.ts`:
+   *
+   *   Server.middleware.register([
+   *     () => import('@ioc:Adonis/Core/BodyParser'),
+   *     () => import('@ioc:Adonis/Addons/ReqLoggerMiddleware'),
+   *   ])
+   *
+   * Only needed for per-request db stats — request lines log without it
+   */
+  export interface ReqLoggerMiddlewareContract {
+    new (...args: any[]): {
+      handle(ctx: HttpContextContract, next: () => void): any
+    }
+  }
+
+  const ReqLoggerMiddleware: ReqLoggerMiddlewareContract
+  export default ReqLoggerMiddleware
+}
