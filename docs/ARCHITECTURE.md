@@ -79,6 +79,20 @@ Why a middleware *and* an event listener:
   emitted inside the request's async execution, so context flows to it).
 - The listener is self-sufficient: if the middleware is not registered,
   requests still log — only collector data (db stats) is missing.
+- **Every flushed response is logged.** `onFinished(res, …)` is registered
+  inside `Server.handle()` *before* the middleware pipeline runs
+  (`define_config-BO3FUjx5.js:5480`), so no middleware can suppress a log line
+  by short-circuiting: a 403 from an origin guard, a 404 from a host check, and
+  an unmatched route all produce a record. Likewise `startTime` is captured
+  before the context is created (`:5471`), so `duration_ms` does not depend on
+  where the middleware sits.
+- **Middleware position affects exactly one thing: what the collectors can
+  see.** The store is found via `AsyncLocalStorage`, so a query emitted before
+  the middleware runs has no store and is dropped. The configure codemod
+  therefore registers it **first** (`position: 'before'`) so query stats cover
+  the whole request, middleware included. Apps configured by an earlier version
+  have it registered last and must move it by hand — re-running configure will
+  not, since the codemod leaves an existing registration alone.
 
 ## DB collection (verified against Lucid v22)
 

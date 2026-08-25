@@ -45,6 +45,34 @@ node ace configure adonis-req-logger
 The configure step publishes `config/req_logger.ts`, registers the provider and
 the server middleware, and defines the `REQ_LOGGER_ENABLED` env variable.
 
+### Where to register it
+
+The configure step registers the middleware **first** among your server
+middleware, which is where it belongs:
+
+```ts
+// start/kernel.ts
+server.use([
+  () => import('adonis-req-logger/req_logger_middleware'), // 👈 first
+  () => import('#middleware/container_bindings_middleware'),
+  () => import('@adonisjs/cors/cors_middleware'),
+])
+```
+
+The middleware establishes the scope that per-request query stats are collected
+in, so a query run *before* it is invisible to the collector. Registering it
+first means queries your own middleware runs — a tenant lookup, an auth token
+read — count toward the request that caused them.
+
+If you installed an earlier version, the middleware was registered **last**, and
+re-running `node ace configure` will not move it (the codemod leaves an existing
+registration alone). Move the line up by hand. Expect `db.count` to rise when you
+do: those queries were always happening, they just weren't being counted.
+
+Only query stats are affected by position. The log line itself is written by a
+listener wired before the middleware pipeline runs, so **every flushed response
+is logged** regardless of where — or whether — the middleware is registered.
+
 ## Configuration
 
 ```ts
@@ -182,6 +210,10 @@ connections: {
   },
 }
 ```
+
+Stats cover every query inside the logger's scope, which is the whole request
+when the middleware is registered first (see
+[Where to register it](#where-to-register-it)).
 
 Query **bindings are never captured** — only the parameterized SQL text of slow
 queries is itemized. Queries fired outside a request (boot, ace commands,
