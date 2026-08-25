@@ -21,6 +21,6 @@
     "prettier": "^3.9.6",
     "turbo": "^2.10.7"
   },
-  "packageManager": "pnpm@11.10.0",
+  "packageManager": "pnpm@11.23.0",
   "prettier": "@adonisjs/prettier-config"
 }
