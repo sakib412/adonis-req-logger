@@ -45,3 +45,18 @@ _Avoid_: host, server, instance
 Not used as a field or config name. A host may be an IP literal (`[2001:db8::1]`),
 `localhost`, or an internal ingress name, none of which are domains.
 _Avoid_: use **Host** instead
+
+### Configurability
+
+**Resolution override**:
+An application-supplied hook that changes *where* a record value comes from,
+never how the record looks. Permitted only where the framework offers no
+equivalent hook of its own, and its result is canonicalised exactly like the
+value it replaces — so the record's shape never depends on whether an override
+is configured.
+_Avoid_: formatting hook, transform hook, augment hook
+
+**Formatting configurability**:
+Any control over the canonical record's shape or the summary line's wording.
+The package has none, by design.
+_Avoid_: custom format, template, message hook
