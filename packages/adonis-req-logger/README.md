@@ -19,6 +19,7 @@ GET /users/1 200 12ms
     "method": "GET",
     "url": "/users/1?full=true",
     "route": "/users/:id",
+    "host": "api.example.com",
     "ip": "203.0.113.7",
     "user_agent": "…"
   },
@@ -60,6 +61,9 @@ export default defineConfig({
   /** Base level for uneventful requests. Escalations only ever raise it */
   level: 'info',
 
+  /** Override how request.host is resolved. See "Which host gets logged" below */
+  // getHost: (ctx, resolveDefault) => ctx.request.header('x-forwarded-host') ?? resolveDefault(),
+
   /** Paths to never log (string prefix or RegExp) */
   skip: ['/health', '/up'],
 
@@ -82,6 +86,66 @@ export default defineConfig({
   },
 })
 ```
+
+### Which host gets logged
+
+`request.host` is the domain the client asked for — so one deployment serving
+several domains can be split per domain in Grafana, Datadog or wherever your logs
+land, instead of only per machine.
+
+By default it is `ctx.request.hostname()`, and for most apps that is already
+correct with no configuration: **Cloudflare and most CDNs preserve the original
+`Host` header to the origin**, so the public domain is what gets logged.
+
+The value is canonicalized so that one name does not look like several to a log
+query — first comma-separated entry, port stripped, lowercased, one trailing dot
+removed, capped at 253 characters. It is never *interpreted*: a deploy-stage
+prefix like `pr123-shop.example.com` or a tenant subdomain is logged exactly as
+it arrived. When no host resolves at all (an HTTP/1.0 client, a bare scanner) the
+key is omitted rather than set to `null`.
+
+> **`host` is not `hostname`.** `hostname` conventionally means the *machine*, and
+> `pino-loki` promotes a top-level `hostname` field into the Loki stream label. This
+> package therefore never emits one — the host lives at `request.host`, in the body.
+> Keep it out of your labels too: customer domains are unbounded cardinality.
+
+#### When a proxy rewrites `Host`
+
+If your traffic reaches the app through a chain that terminates before it — say
+`CDN → load balancer → SSR server → API` — the inner hop usually rewrites `Host`,
+so `request.hostname()` sees an internal ingress host and `request.host` would log
+that instead of the customer's domain.
+
+You have two options, and the second is usually the right one:
+
+1. **Widen `app.http.trustProxy`** so the framework honours `X-Forwarded-Host`
+   natively. Be aware this is not scoped to the host: the same setting drives
+   `request.ip()`, `ips()`, `protocol()` and `secure()`.
+2. **Set `getHost`**, which changes only this field:
+
+   ```ts
+   // config/req_logger.ts
+   export default defineConfig({
+     getHost(ctx, resolveDefault) {
+       return ctx.request.header('x-forwarded-host') ?? resolveDefault()
+     },
+   })
+   ```
+
+   `resolveDefault()` returns the canonicalized default (or `undefined`), so
+   `getHost: (ctx, d) => d()` is exactly the default behaviour. Whatever you
+   return is canonicalized the same way, so the field's shape never depends on
+   your configuration. Return `undefined` to drop the field entirely — that is
+   also how a single-domain app opts out.
+
+   The hook is synchronous, and it runs when the response has already been
+   flushed, so any request state your middleware set on `ctx` is available. If it
+   throws, the field is omitted, the error is reported once, and the log line is
+   still written in full.
+
+**Nothing warns you when this is wrong.** A misconfigured deployment logs a
+plausible-looking internal host, so verify against real traffic once after
+setting it up.
 
 ### Log levels
 

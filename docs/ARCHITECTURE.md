@@ -23,12 +23,20 @@ Fills the gap tracked by [adonisjs/core#5102](https://github.com/adonisjs/core/i
    fixed `msg` summary string (`GET /users/1 200 12ms`). Formatting hooks can be
    added later without a breaking change; removing them later cannot. (The
    pretty preset renders that fixed shape for terminals; it adds no user hooks.)
+   *Resolution* overrides are a separate matter: a hook that changes where a
+   value comes from, not how the record looks, is permitted where the framework
+   offers no equivalent of its own (see `getHost`, and note that the framework
+   does offer `app.http.getIp`). Its result is canonicalized exactly like the
+   value it replaces, so the record's shape never depends on config.
 4. **The DB collector uses its own `AsyncLocalStorage`** — no dependency on the
    framework's `useAsyncLocalStorage` flag. `@adonisjs/lucid` is an *optional*
    peer; the package must work in Lucid-less apps.
-5. **Safe by default.** No request/response bodies, no headers beyond
-   `user-agent`/`content-length`, and query bindings are *never* captured
-   (parameterized SQL text only).
+5. **Safe by default.** No request/response bodies, and no headers beyond
+   `user-agent`, `content-length`, and the host (`Host`, or `X-Forwarded-Host`
+   where the framework trusts the peer). The host is routing metadata rather
+   than user content, and although it is attacker-controlled it is
+   canonicalized, capped at 253 characters, and never emitted as a log label.
+   Query bindings are *never* captured (parameterized SQL text only).
 
 ## Runtime flow
 
@@ -99,6 +107,7 @@ Why a middleware *and* an event listener:
     "method": "GET",
     "url": "/users/1?full=true",
     "route": "/users/:id",     // matched pattern — the aggregation key
+    "host": "api.example.com", // domain the client asked for; omitted when absent
     "ip": "203.0.113.7",
     "user_agent": "…",
     "content_length": 42       // omitted when the header is absent
@@ -111,6 +120,25 @@ Why a middleware *and* an event listener:
 
 `request.route` (the pattern, not the URL) is what makes logs aggregatable per
 endpoint — the Adonis-specific advantage over generic `pino-http`.
+
+`request.host` is the domain the client asked for, so one deployment serving many
+domains can be split per domain instead of only per machine. Two things about it
+are load-bearing:
+
+- **It is not `hostname`.** `hostname` means the machine, and `pino-loki` lifts a
+  top-level `hostname` key out of the body into the Loki stream label — so a field
+  by that name would overwrite the machine label *and* vanish from the body. The
+  host belongs in the body, never in a label: customer domains are unbounded
+  cardinality.
+- **Canonicalize the syntax, never interpret the meaning.** The value is reduced to
+  the first comma-separated entry, has its port stripped (bracket-aware, so IPv6
+  literals survive), is lowercased, loses one trailing FQDN dot, and is capped at
+  253 characters — because those variants are one name by RFC but several distinct
+  values to a log query. What it never does is interpret: a deploy-stage prefix
+  (`pr123-shop.example.com`) or a tenant subdomain is left exactly as it arrived,
+  because collapsing those is the consumer's decision, not this package's. When
+  nothing usable is left the key is omitted rather than set to `null`, matching
+  `content_length` and `user_agent`.
 
 ## Package layout (AdonisJS conventions)
 
@@ -150,6 +178,7 @@ export default defineConfig({
   enabled: env.get('REQ_LOGGER_ENABLED', true),
   logger: undefined,            // named logger (keyof LoggersList); undefined = app default
   level: 'info',                // base level; escalations only ever raise it
+  getHost: undefined,           // (ctx, resolveDefault) => string | undefined
   skip: ['/health', '/up'],     // exact path / segment-boundary prefix, or RegExp
   sample: 1,                    // drops uneventful requests only
   slowRequestThreshold: 1000,   // ms or '1 second' → escalates level to warn
