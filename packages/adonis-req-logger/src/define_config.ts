@@ -14,10 +14,15 @@ export function defineConfig(config: ReqLoggerConfig): ResolvedReqLoggerConfig {
     throw new InvalidArgumentsException('"sample" must be a value between 0 and 1')
   }
 
+  if (config.getHost !== undefined && typeof config.getHost !== 'function') {
+    throw new InvalidArgumentsException('"getHost" must be a function')
+  }
+
   return {
     enabled: config.enabled ?? true,
     logger: config.logger,
     level: validatedLevel(config.level ?? 'info', 'level'),
+    getHost: config.getHost,
     skip: config.skip ?? [],
     sample,
     slowRequestThreshold: string.milliseconds.parse(config.slowRequestThreshold ?? 1000),

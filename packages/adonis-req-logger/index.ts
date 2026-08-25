@@ -14,6 +14,7 @@ export { stubsRoot } from './stubs/main.js'
 export { REQUEST_LOG_LEVELS } from './src/levels.js'
 export type {
   CapturedQuery,
+  GetHost,
   ReqLoggerConfig,
   RequestLogLevel,
   RequestStore,

@@ -1,8 +1,28 @@
+import type { HttpContext } from '@adonisjs/core/http'
 import type { LoggersList } from '@adonisjs/core/types'
 
 import type { RequestLogLevel } from './levels.js'
 
 export type { RequestLogLevel } from './levels.js'
+
+/**
+ * Resolves the public host a request arrived on, for apps whose proxy
+ * chain rewrites the `Host` header before it reaches the application
+ * (so `request.hostname()` sees an internal ingress host).
+ *
+ * Receives the HTTP context and a callback returning the canonicalised
+ * default, so an override can fall back without re-implementing it.
+ * The returned value is canonicalised like any other, and returning
+ * `undefined` omits `request.host` from the record entirely.
+ *
+ * Synchronous by design: the record is built when the response has
+ * already been flushed, and awaiting user code there would let log
+ * lines reorder
+ */
+export type GetHost = (
+  ctx: HttpContext,
+  resolveDefault: () => string | undefined
+) => string | undefined
 
 /**
  * User-facing configuration for the request logger. All fields are
@@ -35,6 +55,18 @@ export type ReqLoggerConfig = {
    * Defaults to `'info'`
    */
   level?: RequestLogLevel
+
+  /**
+   * Override how `request.host` is resolved. By default the field is
+   * `ctx.request.hostname()`, which is correct whenever the `Host`
+   * header reaches the application unchanged (including behind
+   * Cloudflare). Set this when a proxy in front of the app rewrites
+   * `Host`, so the framework would otherwise see an internal host.
+   *
+   * Prefer this over widening `app.http.trustProxy`, which also
+   * changes `request.ip()`, `ips()`, `protocol()` and `secure()`
+   */
+  getHost?: GetHost
 
   /**
    * Request paths to never log. Strings match the exact path or a path
@@ -107,6 +139,7 @@ export type ResolvedReqLoggerConfig = {
   enabled: boolean
   logger?: keyof LoggersList
   level: RequestLogLevel
+  getHost?: GetHost
   skip: (string | RegExp)[]
   sample: number
   slowRequestThreshold: number

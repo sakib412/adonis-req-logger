@@ -23,6 +23,18 @@ const reqLoggerConfig = defineConfig({
   level: 'info',
 
   /**
+   * Override how "request.host" is resolved. The default is
+   * "ctx.request.hostname()", which is correct whenever the "Host"
+   * header reaches this app unchanged (including behind Cloudflare).
+   * Set this only when a proxy in front of the app rewrites "Host" —
+   * it is preferable to widening "app.http.trustProxy", which also
+   * changes request.ip(), ips(), protocol() and secure().
+   */
+  // getHost(ctx, resolveDefault) {
+  //   return ctx.request.header('x-forwarded-host') ?? resolveDefault()
+  // },
+
+  /**
    * Paths that never get logged. Strings match the exact path or a
    * path prefix, regular expressions are tested against the path.
    */
