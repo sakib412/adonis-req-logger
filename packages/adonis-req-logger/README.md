@@ -189,12 +189,17 @@ background jobs) are ignored.
 
 ### Pretty printing in development
 
-The package ships a pino-pretty preset that appends the per-request query
-stats to the summary line:
+The package ships a pino-pretty preset that appends the request's host and
+the per-request query stats to the summary line:
 
 ```
-[13:09:17.033] INFO: GET /demo/users 200 41ms · 1 query 1.9ms
+[13:09:17.033] INFO: GET /demo/users 200 41ms · shop.example.com · 1 query 1.9ms
 ```
+
+The host is shown whenever the record has one — `localhost` included, because a
+segment that only appears for unusual hosts is one nobody notices is missing when
+resolution breaks. It is truncated to 32 characters for display only; the record
+itself keeps the full value up to the 253-character cap.
 
 ```ts
 // config/logger.ts
