@@ -60,3 +60,18 @@ _Avoid_: formatting hook, transform hook, augment hook
 Any control over the canonical record's shape or the summary line's wording.
 The package has none, by design.
 _Avoid_: custom format, template, message hook
+
+### Collection
+
+**Logged scope**:
+The span of a request's asynchronous execution that the logger's per-request
+store covers. Work happening outside it is invisible to collectors, so the scope
+is what decides whether a query counts toward the request that caused it — not
+the request's own boundaries.
+_Avoid_: request scope, context, ALS scope
+
+**Collector**:
+Something that observes a request while it runs and fills the store with what it
+finds, so the record can report it once the request completes. Distinct from the
+record builder, which reads the store and never gathers anything itself.
+_Avoid_: listener, hook, instrumentation
