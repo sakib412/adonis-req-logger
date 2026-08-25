@@ -34,10 +34,16 @@ export async function configure(command: Configure) {
 
   /**
    * Register the middleware with the server stack, so unmatched
-   * routes (404s) are covered as well
+   * routes (404s) are covered as well.
+   *
+   * Registered *first* on purpose: the middleware establishes the
+   * AsyncLocalStorage scope collectors read from, so anything running
+   * before it is invisible to them. First position means a query run by
+   * another middleware — a tenant lookup, an auth token read — is
+   * counted as part of the request that caused it
    */
   await codemods.registerMiddleware('server', [
-    { path: 'adonis-req-logger/req_logger_middleware' },
+    { path: 'adonis-req-logger/req_logger_middleware', position: 'before' },
   ])
 
   /**
