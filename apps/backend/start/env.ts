@@ -30,5 +30,5 @@ export default await Env.create(new URL('../', import.meta.url), {
   | Variables for configuring adonis-req-logger
   |----------------------------------------------------------
   */
-  REQ_LOGGER_ENABLED: Env.schema.boolean.optional()
+  REQ_LOGGER_ENABLED: Env.schema.boolean.optional(),
 })
