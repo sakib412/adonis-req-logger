@@ -9,6 +9,8 @@ versions follow the
 
 ## [Unreleased]
 
+## [5.2.0] - 2026-09-02
+
 ### Added
 
 - `request.host` in the canonical record: the domain the client asked for,
@@ -55,6 +57,7 @@ line per request timed from a server before-hook to response flush
 escalation, skip lists and sampling. See the
 [GitHub release](https://github.com/sakib412/adonis-req-logger/releases/tag/v5.0.0).
 
-[Unreleased]: https://github.com/sakib412/adonis-req-logger/compare/v5.1.0...v5.x
+[Unreleased]: https://github.com/sakib412/adonis-req-logger/compare/v5.2.0...v5.x
+[5.2.0]: https://github.com/sakib412/adonis-req-logger/compare/v5.1.0...v5.2.0
 [5.1.0]: https://github.com/sakib412/adonis-req-logger/compare/v5.0.0...v5.1.0
 [5.0.0]: https://github.com/sakib412/adonis-req-logger/releases/tag/v5.0.0
