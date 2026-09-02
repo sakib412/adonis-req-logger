@@ -22,7 +22,16 @@ export default class ReqLoggerProvider {
         'Invalid or missing "config/req_logger.ts" file. Run "node ace configure adonis-req-logger"'
       )
     }
-    return resolveConfig(config)
+
+    /**
+     * The default `request.host` applies the app's own proxy trust
+     * (`http.trustProxy` in config/app.ts) to X-Forwarded-Host, because
+     * v5's `request.hostname()` inverts that check — see resolveHost()
+     */
+    return resolveConfig(
+      config,
+      Config.get('app.http.trustProxy', () => false)
+    )
   }
 
   public register() {
