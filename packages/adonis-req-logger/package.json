@@ -31,7 +31,8 @@
     "build/providers",
     "build/src",
     "build/templates",
-    "build/instructions.md"
+    "build/instructions.md",
+    "CHANGELOG.md"
   ],
   "publishConfig": {
     "tag": "adonis5"
