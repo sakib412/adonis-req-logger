@@ -4,13 +4,15 @@ stored inside `config/req_logger.ts`.
 ## Register the middleware (recommended)
 
 Per-request database query stats need the global middleware, which scopes
-each request for the `db:query` collector. Add it to the global middleware
-list in `start/kernel.ts`:
+each request for the `db:query` collector. Add it **first** in the global
+middleware list in `start/kernel.ts`, so queries run by your other middleware
+(a tenant lookup, an auth token read) count toward the request that caused
+them:
 
 ```ts
 Server.middleware.register([
-  () => import('@ioc:Adonis/Core/BodyParser'),
   () => import('@ioc:Adonis/Addons/ReqLoggerMiddleware'),
+  () => import('@ioc:Adonis/Core/BodyParser'),
 ])
 ```
 

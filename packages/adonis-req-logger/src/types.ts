@@ -1,6 +1,12 @@
-import type { ReqLoggerConfig, RequestLogLevel } from '@ioc:Adonis/Addons/ReqLogger'
+import type { GetHost, ReqLoggerConfig, RequestLogLevel } from '@ioc:Adonis/Addons/ReqLogger'
 
-export type { ReqLoggerConfig, RequestLogLevel }
+export type { GetHost, ReqLoggerConfig, RequestLogLevel }
+
+/**
+ * The application's `http.trustProxy` predicate from `config/app.ts`
+ * (a compiled proxy-addr matcher in the starter kits)
+ */
+export type TrustProxy = (address: string, distance: number) => boolean
 
 /**
  * Configuration after the provider has applied defaults
@@ -8,6 +14,8 @@ export type { ReqLoggerConfig, RequestLogLevel }
 export type ResolvedReqLoggerConfig = {
   enabled: boolean
   level: RequestLogLevel
+  getHost?: GetHost
+  trustProxy: TrustProxy
   skip: (string | RegExp)[]
   sample: number
   slowRequestThreshold: number

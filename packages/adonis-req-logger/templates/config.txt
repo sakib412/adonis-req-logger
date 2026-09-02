@@ -13,6 +13,18 @@ const reqLoggerConfig: ReqLoggerConfig = {
   level: 'info',
 
   /**
+   * Override how "request.host" is resolved. The default is the "Host"
+   * header, or "X-Forwarded-Host" from a proxy that "http.trustProxy"
+   * trusts — correct whenever the public host reaches this app
+   * (including behind Cloudflare). Set this only when a proxy rewrites "Host" —
+   * it is preferable to widening "http.trustProxy" in config/app.ts,
+   * which also changes request.ip(), ips(), protocol() and secure().
+   */
+  // getHost(ctx, resolveDefault) {
+  //   return ctx.request.header('x-forwarded-host') ?? resolveDefault()
+  // },
+
+  /**
    * Paths that never get logged. Strings match the exact path or a
    * path prefix, regular expressions are tested against the path.
    */

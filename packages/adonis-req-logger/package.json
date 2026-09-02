@@ -1,6 +1,6 @@
 {
   "name": "adonis-req-logger",
-  "version": "5.1.0",
+  "version": "5.2.0",
   "private": false,
   "description": "Request logging for AdonisJS v5 — one structured, canonical log line per HTTP request, with per-request Lucid query stats",
   "license": "MIT",
@@ -31,7 +31,8 @@
     "build/providers",
     "build/src",
     "build/templates",
-    "build/instructions.md"
+    "build/instructions.md",
+    "CHANGELOG.md"
   ],
   "publishConfig": {
     "tag": "adonis5"

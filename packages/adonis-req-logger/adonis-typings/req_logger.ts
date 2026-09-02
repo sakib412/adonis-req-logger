@@ -1,8 +1,29 @@
 declare module '@ioc:Adonis/Addons/ReqLogger' {
+  import { HttpContextContract } from '@ioc:Adonis/Core/HttpContext'
+
   /**
    * Levels a request log line can be written at, least to most severe
    */
   export type RequestLogLevel = 'trace' | 'debug' | 'info' | 'warn' | 'error' | 'fatal'
+
+  /**
+   * Resolves the public host a request arrived on, for apps whose proxy
+   * chain rewrites the `Host` header before it reaches the application
+   * (so `request.hostname()` sees an internal ingress host).
+   *
+   * Receives the HTTP context and a callback returning the canonicalised
+   * default, so an override can fall back without re-implementing it.
+   * The returned value is canonicalised like any other, and returning
+   * `undefined` omits `request.host` from the record entirely.
+   *
+   * Synchronous by design: the record is built when the response has
+   * already been flushed, and awaiting user code there would let log
+   * lines reorder
+   */
+  export type GetHost = (
+    ctx: HttpContextContract,
+    resolveDefault: () => string | undefined
+  ) => string | undefined
 
   /**
    * User-facing configuration, lives in `config/req_logger.ts`. All fields
@@ -27,6 +48,20 @@ declare module '@ioc:Adonis/Addons/ReqLogger' {
      * Defaults to `'info'`
      */
     level?: RequestLogLevel
+
+    /**
+     * Override how `request.host` is resolved. By default the field is
+     * the `Host` header, or `X-Forwarded-Host` when the peer is a
+     * proxy your `http.trustProxy` setting trusts — correct whenever the
+     * public `Host` reaches the application (including behind
+     * Cloudflare). Set this when a proxy in front of the app rewrites
+     * `Host`, so the default would otherwise see an internal host.
+     *
+     * Prefer this over widening `http.trustProxy` in `config/app.ts`,
+     * which also changes `request.ip()`, `ips()`, `protocol()` and
+     * `secure()`
+     */
+    getHost?: GetHost
 
     /**
      * Request paths to never log. Strings match the exact path or a path

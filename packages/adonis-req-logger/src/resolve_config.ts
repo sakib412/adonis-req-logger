@@ -1,21 +1,30 @@
 import { REQUEST_LOG_LEVELS } from './levels'
 import type { ReqLoggerConfig, RequestLogLevel } from '@ioc:Adonis/Addons/ReqLogger'
-import type { ResolvedReqLoggerConfig } from './types'
+import type { ResolvedReqLoggerConfig, TrustProxy } from './types'
 
 /**
  * Applies defaults and validates the request logger configuration. Runs
  * in the provider at boot — v5 config files export plain objects, so
  * there is no user-facing `defineConfig` on this line
  */
-export function resolveConfig(config: ReqLoggerConfig): ResolvedReqLoggerConfig {
+export function resolveConfig(
+  config: ReqLoggerConfig,
+  trustProxy: TrustProxy = () => false
+): ResolvedReqLoggerConfig {
   const sample = config.sample ?? 1
   if (sample < 0 || sample > 1) {
     throw new Error('adonis-req-logger: "sample" must be a value between 0 and 1')
   }
 
+  if (config.getHost !== undefined && typeof config.getHost !== 'function') {
+    throw new Error('adonis-req-logger: "getHost" must be a function')
+  }
+
   return {
     enabled: config.enabled ?? true,
     level: validatedLevel(config.level ?? 'info', 'level'),
+    getHost: config.getHost,
+    trustProxy,
     skip: config.skip ?? [],
     sample,
     slowRequestThreshold: config.slowRequestThreshold ?? 1000,
