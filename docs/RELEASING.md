@@ -17,8 +17,10 @@ Within a line, versions are normal semver for the package's own changes
 it tracks the AdonisJS major.
 
 Canonical docs (this file, ARCHITECTURE.md) live on `main`. The `v5.x`
-branch carries its own README and implementation, nothing else is
-authoritative there.
+branch carries its own README, CHANGELOG and implementation, nothing else is
+authoritative there. Each line's `packages/adonis-req-logger/CHANGELOG.md`
+follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/): changes
+accrue under `[Unreleased]` and the heading is renamed at release time.
 
 ## Where does my change land first?
 
@@ -27,12 +29,16 @@ authoritative there.
 ### New feature
 
 1. Build it on `main` against the current AdonisJS major. Update the
-   package README; update ARCHITECTURE.md if a locked decision moves.
+   package README and add a line under `[Unreleased]` in
+   `packages/adonis-req-logger/CHANGELOG.md`; update ARCHITECTURE.md if a
+   locked decision moves.
 2. Verify with the demo app (`apps/backend`) — drive the affected behavior,
    don't stop at typecheck.
 3. If the feature is **portable to the v5 API surface** (see the exclusion
-   list below), add the `backport:v5.x` label to the PR/commit. It joins the
-   queue for the next 5.x release — you don't port it now.
+   list below), add the `backport:v5.x` label to the PR. A change committed
+   directly to `main` has no PR to label, so queue it as a tracking issue
+   carrying the label and listing its SHAs. It joins the queue for the next
+   5.x release — you don't port it now.
 4. Release `main` when ready (see checklist): **minor** bump.
 
 ### Bug / security fix
@@ -66,6 +72,7 @@ git checkout main && git pull && pnpm install
 cd packages/adonis-req-logger
 pnpm typecheck && pnpm build
 npm pack --dry-run                 # eyeball the tarball contents
+# CHANGELOG.md: rename [Unreleased] to [7.x.y] - YYYY-MM-DD, update the compare links
 npm version minor                  # or patch — updates package.json
 git commit -am "chore: release 7.x.y" && git push
 npm publish                        # no publishConfig here → lands on `latest`
@@ -81,7 +88,9 @@ gh release create v7.x.y --latest --title "v7.x.y" --notes "..."
 
    ```sh
    gh pr list --repo sakib412/adonis-req-logger \
-     --label backport:v5.x --state merged      # or search commits by label
+     --label backport:v5.x --state merged
+   gh issue list --repo sakib412/adonis-req-logger \
+     --label backport:v5.x --state open        # tracking issues for direct commits
    git checkout v5.x && git pull
    git cherry-pick -x <sha>...                 # resolve to v5 APIs as needed
    ```
@@ -103,6 +112,7 @@ gh release create v7.x.y --latest --title "v7.x.y" --notes "..."
 
    ```sh
    cd packages/adonis-req-logger
+   # CHANGELOG.md on the branch: rename [Unreleased] to [5.x.y] - YYYY-MM-DD
    npm version patch                # or minor for back-ported features
    git commit -am "chore: release 5.x.y" && git push
    npm publish

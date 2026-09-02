@@ -219,7 +219,9 @@ within a line are normal semver for the package's own changes.
   Fixes land on `main` first and are back-ported when applicable.
 - **Back-port workflow:** changes landing on `main` that qualify — bug and
   security fixes, plus features portable to the older line's API surface —
-  get the `backport:v5.x` label on their PR/commit. Labelled changes are
+  get the `backport:v5.x` label on their PR (or on a tracking issue listing
+  the SHAs, when the change was committed directly — a bare commit cannot
+  carry a label). Labelled changes are
   cherry-picked (`git cherry-pick -x`) to `v5.x` as a batch before each 5.x
   patch/minor release; the label is the queue. Changes tied to APIs the old
   line lacks (ESM-only, `http:request_completed`, named loggers, worker-thread

@@ -175,6 +175,34 @@ You have two options, and the second is usually the right one:
 plausible-looking internal host, so verify against real traffic once after
 setting it up.
 
+#### Behind Cloudflare or another CDN
+
+The host needs nothing: Cloudflare forwards the visitor's `Host` header to the
+origin unchanged, so `request.host` is the public domain out of the box.
+
+`request.ip` is another matter. AdonisJS trusts only loopback peers by default
+(`app.http.trustProxy`), so behind Cloudflare it logs a **Cloudflare edge IP**,
+not the visitor. The framework's own hook fixes that without touching
+`trustProxy`:
+
+```ts
+// config/app.ts
+export const http = defineConfig({
+  getIp(request) {
+    return request.header('cf-connecting-ip') ?? undefined
+  },
+})
+```
+
+Returning `undefined` falls back to the default chain, so the same config works
+for traffic that did not come through Cloudflare. Trusting Cloudflare's
+[published IP ranges](https://www.cloudflare.com/ips/) in `trustProxy` works too,
+but has to be kept current. Avoid `trustProxy: () => true`: anyone who can reach
+the origin directly then controls the logged IP, protocol and host. For the same
+reason `CF-Connecting-IP` is only as trustworthy as your origin is closed — block
+direct traffic (Cloudflare IP allow-list, Authenticated Origin Pulls, or a Tunnel)
+before relying on it.
+
 ### Log levels
 
 | Condition                                       | Level                              |
@@ -275,6 +303,18 @@ loggers: {
 // config/req_logger.ts
 export default defineConfig({ logger: 'http' })
 ```
+
+The host is a body field, so query it with the JSON parser — nested keys flatten
+with `_`:
+
+```
+{app="shop-api"} | json | request_host = "eu.example.com"
+sum by (request_host) (count_over_time({app="shop-api"} | json [5m]))
+```
+
+Do not promote `request_host` to a stream label: every customer domain would
+become its own stream, and Loki's cost and limits scale with stream count.
+Filtering and splitting by a parsed field is what the JSON parser is for.
 
 > Tip: enable `generateRequestId: true` in `config/app.ts` (http settings) so
 > every record carries a `request.id` you can correlate with error reports.
