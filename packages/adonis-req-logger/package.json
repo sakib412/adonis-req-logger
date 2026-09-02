@@ -1,6 +1,6 @@
 {
   "name": "adonis-req-logger",
-  "version": "7.0.0",
+  "version": "7.1.0",
   "private": false,
   "type": "module",
   "description": "Request logging for AdonisJS — one structured, canonical log line per HTTP request, with per-request Lucid query stats",
@@ -27,7 +27,8 @@
   "main": "build/index.js",
   "types": "build/index.d.ts",
   "files": [
-    "build"
+    "build",
+    "CHANGELOG.md"
   ],
   "exports": {
     ".": "./build/index.js",

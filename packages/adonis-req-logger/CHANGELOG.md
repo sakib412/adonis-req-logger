@@ -9,6 +9,8 @@ the `v5.x` branch.
 
 ## [Unreleased]
 
+## [7.1.0] - 2026-09-02
+
 ### Added
 
 - `request.host` in the canonical record: the domain the client asked for,
@@ -39,5 +41,6 @@ the `v5.x` branch.
 First release for AdonisJS v7, published as npm `latest`. See the
 [GitHub release](https://github.com/sakib412/adonis-req-logger/releases/tag/v7.0.0).
 
-[Unreleased]: https://github.com/sakib412/adonis-req-logger/compare/v7.0.0...HEAD
+[Unreleased]: https://github.com/sakib412/adonis-req-logger/compare/v7.1.0...HEAD
+[7.1.0]: https://github.com/sakib412/adonis-req-logger/compare/v7.0.0...v7.1.0
 [7.0.0]: https://github.com/sakib412/adonis-req-logger/releases/tag/v7.0.0
